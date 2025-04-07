@@ -11,7 +11,7 @@
 \section{Especificaci\'on}
 
 \subsection{observadores}
-TAD Berretacoin \{
+TAD Berretacoin
     \\
     obs blockchain: seq$\langle$Bloque$\rangle$ %Secuancias de bloques ordenados por IDbloque
     \\
@@ -48,7 +48,6 @@ TAD Berretacoin \{
             C0.saldos[getIdComprador(bloque.transacciones[i])] - getMonto(bloque.transacciones[i])}
         }
     \end{proc}
-\}
 \subsection*{auxiliares}
 \aux{ultimoBloque}{blockchain: seq$\langle$Bloque$\rangle$}{Bloque}{blockchain[|blockchain| - 1]}
 \pred{montoValido}{transaccion: Transaccion, cadena: Berretacoin}

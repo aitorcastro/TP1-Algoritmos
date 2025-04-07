@@ -102,6 +102,49 @@ pred sonTransaccionesValidas(in id_bloque: Z, in b: Berretacoin){
 }
 
 \section{Procesos y predicados pedidos}
+\\
+    obs blockchain: seq$\langle$Bloque$\rangle$ %Secuancias de bloques ordenados por IDbloque
+    \\
+    obs saldos: dict$\langle$idUsuario: \ent, dinero: \ent$\rangle$%Diccionario que mapea cada usuario a su saldo
+    \\
+    obs totalCreado: \ent %Contador de unidades Creadas
+
+\subsection{agregarBloque}
+
+    \begin{proc}{agregarBloque}{\Inout cadena: Berretacoin, \In bloque: Bloque}{}
+        \requiere{bloque.id = ultimoBloque(cadena.blockchain).id + 1}
+        \requiere{bloqueValido(bloque)} %tiene a lo sumo 50 transacciones ordenadas por idTransaccion y si tiene transaccion de creacion esta en la posicion 0
+        \requiere{tieneTransaccionDeCreacion(bloque) \implicaLuego totalCreado < 3000}
+        \requiere{\paraTodo[unalinea]{i}{\ent}{
+            (0 \leq i < |bloque.transacciones|) \land \lnot esCreativa(bloque.transacciones[i])
+            \\ 
+            \implicaLuego (montoValido(bloque.transacciones[i]))
+            }
+        }
+        \requiere{cadena = C0}
+
+        \asegura{cadena.blockchain = C0.blockchain + bloque}  
+        \asegura{\paraTodo[unalinea]{i}{\ent}{
+            (0 \leq i < |bloque.transacciones|) \land esCreativa(bloque.transacciones[i])\\
+            \implicaLuego cadena.saldos[getIdVendedor(bloque.transacciones[i])] = \\ C0.saldos[getIdVendedor(bloque.transacciones[i])] + getMonto(bloque.transacciones[i])}
+        }
+        \asegura{\paraTodo[unalinea]{i}{\ent}{
+            (0 \leq i < |bloque.transacciones|) \land esCreativa(bloque.transacciones[i])\\
+            \implicaLuego \\
+            cadena.saldos[getIdVendedor(bloque.transacciones[i])] = \\
+            C0.saldos[getIdVendedor(bloque.transacciones[i])] + getMonto(bloque.transacciones[i])\\
+            \land \\
+            cadena.saldos[getIdComprador(bloque.transacciones[i])] = \\
+            C0.saldos[getIdComprador(bloque.transacciones[i])] - getMonto(bloque.transacciones[i])}
+        }
+    \end{proc}
+\subsection*{auxiliares}
+\aux{ultimoBloque}{blockchain: seq$\langle$Bloque$\rangle$}{Bloque}{blockchain[|blockchain| - 1]}
+\pred{montoValido}{transaccion: Transaccion, cadena: Berretacoin}
+{transaccion.monto \leq cadena.saldos[transaccion.idComprador]}
+\aux{getIdVendedor}{transaccion: Transaccion}{\ent}{transaccion.idVendedor}
+\aux{getIdComprador}{transaccion: Transaccion}{\ent}{transaccion.idComprador}
+\aux{getMonto}{transaccion: Transaccion}{\ent}{transaccion.monto}
 
 1. agregarBloque(inout b: Berretacoin, in bloque: Bloque)
 Requisitos:
