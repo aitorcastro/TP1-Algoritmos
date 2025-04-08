@@ -21,33 +21,34 @@ TAD Berretacoin
 
 \subsection{agregarBloque}
 
-    \begin{proc}{agregarBloque}{\Inout cadena: Berretacoin, \In bloque: Bloque}{}
-        \requiere{bloque.id = ultimoBloque(cadena.blockchain).id + 1}
-        \requiere{bloqueValido(bloque)} %tiene a lo sumo 50 transacciones ordenadas por idTransaccion y si tiene transaccion de creacion esta en la posicion 0
-        \requiere{tieneTransaccionDeCreacion(bloque) \implicaLuego totalCreado < 3000}
-        \requiere{\paraTodo[unalinea]{i}{\ent}{
-            (0 \leq i < |bloque.transacciones|) \land \lnot esCreativa(bloque.transacciones[i])
-            \\ 
-            \implicaLuego (montoValido(bloque.transacciones[i]))
-            }
+\begin{proc}{agregarBloque}{\Inout cadena: Berretacoin, \In bloque: Bloque}{}
+    \requiere{bloque.id = ultimoBloque(cadena.blockchain).id + 1}
+    \requiere{bloqueValido(bloque)} %tiene a lo sumo 50 transacciones ordenadas por idTransaccion y si tiene transaccion de creacion esta en la posicion 0
+    \requiere{tieneTransaccionDeCreacion(bloque) \implicaLuego totalCreado < 3000}
+    \requiere{\paraTodo[unalinea]{i}{\ent}{
+        (0 \leq i < |bloque.transacciones|) \land \lnot esCreativa(bloque.transacciones[i])
+        \\ 
+        \implicaLuego (montoValido(bloque.transacciones[i]))
         }
-        \requiere{cadena = C0}
+    }
+    \requiere{cadena = C0}
 
-        \asegura{cadena.blockchain = C0.blockchain + bloque}  
-        \asegura{\paraTodo[unalinea]{i}{\ent}{
-            (0 \leq i < |bloque.transacciones|) \land esCreativa(bloque.transacciones[i])\\
-            \implicaLuego cadena.saldos[getIdVendedor(bloque.transacciones[i])] = \\ C0.saldos[getIdVendedor(bloque.transacciones[i])] + getMonto(bloque.transacciones[i])}
-        }
-        \asegura{\paraTodo[unalinea]{i}{\ent}{
-            (0 \leq i < |bloque.transacciones|) \land esCreativa(bloque.transacciones[i])\\
-            \implicaLuego \\
-            cadena.saldos[getIdVendedor(bloque.transacciones[i])] = \\
-            C0.saldos[getIdVendedor(bloque.transacciones[i])] + getMonto(bloque.transacciones[i])\\
-            \land \\
-            cadena.saldos[getIdComprador(bloque.transacciones[i])] = \\
-            C0.saldos[getIdComprador(bloque.transacciones[i])] - getMonto(bloque.transacciones[i])}
-        }
-    \end{proc}
+    \asegura{cadena.blockchain = C0.blockchain + bloque}  
+    \asegura{\paraTodo[unalinea]{i}{\ent}{
+        (0 \leq i < |bloque.transacciones|) \land esCreativa(bloque.transacciones[i])\\
+        \implicaLuego cadena.saldos[getIdVendedor(bloque.transacciones[i])] = \\ C0.saldos[getIdVendedor(bloque.transacciones[i])] + getMonto(bloque.transacciones[i])}
+    }
+    \asegura{\paraTodo[unalinea]{i}{\ent}{
+        (0 \leq i < |bloque.transacciones|) \land esCreativa(bloque.transacciones[i])\\
+        \implicaLuego \\
+        cadena.saldos[getIdVendedor(bloque.transacciones[i])] = \\
+        C0.saldos[getIdVendedor(bloque.transacciones[i])] + getMonto(bloque.transacciones[i])\\
+        \land \\
+        cadena.saldos[getIdComprador(bloque.transacciones[i])] = \\
+        C0.saldos[getIdComprador(bloque.transacciones[i])] - getMonto(bloque.transacciones[i])}
+    }
+\end{proc}
+
 \subsection*{auxiliares}
 \aux{ultimoBloque}{blockchain: seq$\langle$Bloque$\rangle$}{Bloque}{blockchain[|blockchain| - 1]}
 \pred{montoValido}{transaccion: Transaccion, cadena: Berretacoin}
@@ -57,5 +58,16 @@ TAD Berretacoin
 \aux{getMonto}{transaccion: Transaccion}{\ent}{transaccion.monto}
 
 \subsection{maximosTenedores}
+
+\begin{proc}{maximosTenedores}{\In cadena: Berretacoin}{seq$\langle$\ent$\rangle$}
+    \asegura{\paraTodo[unalinea]{u}{\ent}{(0 \leq u < |cadena.saldos|) \land \\
+    (cadena.saldos[u].dinero = valorMaximo(cadena.saldos)) \implicaLuego \\
+    concat(res, \langle u \rangle)}}
+\end{proc}
+
+\subsection*{auxiliares}
+\aux{valorMaximo}{diccionario: dict$\langle$k: \ent, v: \ent$\rangle$}{\ent}{
+    \paraTodo[unalinea]{i}{\ent}{(1 \leq i < |diccionario| )(\\ \IfThenElse{diccionario[i].v>diccionario[i-1].v}{res = diccionario[i].v}{res = diccionario[i-1].v})}
+}
 
 \end{document}
