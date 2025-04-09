@@ -60,6 +60,7 @@ TAD Berretacoin
 \subsection{maximosTenedores}
 
 \begin{proc}{maximosTenedores}{\In cadena: Berretacoin}{seq$\langle$\ent$\rangle$}
+    \requiere{True}
     \asegura{\paraTodo[unalinea]{u}{\ent}{(0 \leq u < |cadena.saldos|) \land \\
     (cadena.saldos[u].dinero = valorMaximo(cadena.saldos)) \implicaLuego \\
     concat(res, \langle u \rangle)}}
@@ -70,8 +71,11 @@ TAD Berretacoin
     \paraTodo[unalinea]{i}{\ent}{(1 \leq i < |diccionario| )(\\ \IfThenElse{diccionario[i].v>diccionario[i-1].v}{res = diccionario[i].v}{res = diccionario[i-1].v})}
 }
 
+\newpage
+
 \subsection{montoMedio}
 \begin{proc}{montoMedio}{\In cadena: Berretacoin}{\ent}
+    \requiere{True}
     \asegura {
         res = \dfrac{totalTransacciones(cadena)}{cantidadTransacciones(cadena)}}
 \end{proc}
@@ -86,4 +90,14 @@ TAD Berretacoin
 \sum_{i=0}^{|cadena.blockchain| - 1} \sum_{j=0}^{|cadena.blockchain[i].transacciones| - 1} 
 \ \ (1)}
 
+\subsection{cotizacionAPesos}
+\begin{proc}{cotizacionAPesos}{\In cotizaciones: seq$\langle$\ent$\rangle$, \In cadena: Berretacoin}{seq$\langle$\ent$\rangle$}
+    \requiere{True}
+    \asegura{\paraTodo[unalinea]{i}{\ent}{(0 \leq i < |cotizaciones|) \implicaLuego res[i] = cotizaciones[i] * totalTransaccion(cadena.blockchain[i])}}
+\end{proc}
+
+\subsection*{auxiliares}
+\aux{totalTransaccion}{bloq: Bloque}{\ent}{
+    \sum_{i=0}^{|bloq.transacciones| - 1} \ \ (getMonto(bloq.transacciones[i]))
+}
 \end{document}
