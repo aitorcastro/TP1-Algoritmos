@@ -70,4 +70,20 @@ TAD Berretacoin
     \paraTodo[unalinea]{i}{\ent}{(1 \leq i < |diccionario| )(\\ \IfThenElse{diccionario[i].v>diccionario[i-1].v}{res = diccionario[i].v}{res = diccionario[i-1].v})}
 }
 
+\subsection{montoMedio}
+\begin{proc}{montoMedio}{\In cadena: Berretacoin}{\ent}
+    \asegura {
+        res = \dfrac{totalTransacciones(cadena)}{cantidadTransacciones(cadena)}}
+\end{proc}
+
+\subsection*{auxiliares}
+\aux{totalTransacciones}{cadena: Berretacoin}{\ent}{\\
+    \sum_{i=0}^{|cadena.blockchain| - 1} \sum_{j=0}^{|cadena.blockchain[i].transacciones| - 1} 
+    \ \ (getMonto(cadena.blockchain[i].transacciones[j]))
+}
+
+\aux{cantidadTransacciones}{cadena: Berretacoin}{\ent}{\\
+\sum_{i=0}^{|cadena.blockchain| - 1} \sum_{j=0}^{|cadena.blockchain[i].transacciones| - 1} 
+\ \ (1)}
+
 \end{document}
