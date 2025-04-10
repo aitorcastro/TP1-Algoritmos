@@ -1,0 +1,275 @@
+\documentclass[10pt,a4paper]{article}
+
+\input{AEDmacros}
+\usepackage{caratula} % Version modificada para usar las macros de algo1 de ~> https://github.com/bcardiff/dc-tex
+
+
+\titulo{Trabajo Práctico N°1}
+\subtitulo{Especificación de TADs}
+
+\fecha{\today}
+
+\materia{Algoritmos y estructura de datos}
+\grupo{Grupo Trelew}
+
+\integrante{Apellido, Nombre1}{001/01}{email1@dominio.com}
+\integrante{Groisman, Salvador}{243/24}{salvagroisman@gmail.com}
+\integrante{Apellido, Nombre3}{003/01}{email3@dominio.com}
+\integrante{Apellido, Nombre4}{004/01}{email4@dominio.com}
+% Pongan cuantos integrantes quieran
+
+% Declaramos donde van a estar las figuras
+% No es obligatorio, pero suele ser comodo
+\graphicspath{{../static/}}
+
+\begin{document}
+
+
+
+\maketitle
+
+\part{Introducción: }
+
+\part{Jutificativo paso a paso de las decisiones tomadas:}
+
+
+\section{Observadores}
+
+\subsection{Definiciones:}
+\begin{enumerate}
+    \item obs: cantidadBloques(): \ent.
+    \item obs: cantidadUsuarios(): \ent.
+    \item obs: saldo(id: \ent): \ent.
+    \item obs: transaccion(id.bloque: Z, id.transacción: Z): Transacción.
+    \item obs: bloque(id: \ent): Bloque.
+\end{enumerate}
+
+
+\subsection{Razones para hacerlo de esta forma:}
+
+\begin{enumerate}
+    \item Esto me devuelve cuantos bloques tengo, originalmente usamos cantidadEmitida, pero tras estar especificando un tiempo, nos dimos cuenta que esto nos permite simplificar algunos observadores.
+    \item Esto lo uso para evitar definirme un tipo de datos usuario, lo cual le dará al programador libertad de definirlo como prefiera (por ejemplo struct o diccionario, entre otras).
+    \item En este caso, nuevamente para evitar definir el tipo de usuario, nos centramos simplemente en definir un observador que nos permita acceder al saldo que tiene un usuario específico en una instancia del programa.
+    \item Aquí nos limitamos a definir lo que pide el enunciado. Estamos suponiendo que el tipo Transacción es una tupla como la dada.
+    \item Aquí estamos pidiendo que dada la id de un bloque, el observador devuelva la lista de transacciones. Nuevamente aquí suponemos que el tipo Bloque es una secuencia de transacciones.
+\end{enumerate}
+
+
+
+
+\section{Inicializador}
+
+\subsection{Definición:}
+
+\begin{proc}{inicalizarBerretacoin}{}
+
+    \requiere{}
+    \asegura{ \res.cantidadBloques() = 0}
+    \asegura{\res.cantidadUsuarios() = 0 }
+
+\end{proc}
+
+\subsection{Pequeño comentario: }
+
+Inicializamos el programa, la cantidad de usuarios es 0, pues nos interesa además que esta Id quede reservada para el emisor de la criptomoneda
+
+\section{Usuarios: }
+
+\subsection{Definiciones de Procesos: }
+
+\begin{enumerate}
+    \item 
+        \begin{proc}{agregarUsuario}{\Inout b: Berretacoin}{}
+
+            \requiere{b = b_0 }
+            \asegura{b.cantidadUsuarios() = b_0.cantidadUsuarios() + 1 \yLuego b.saldo(b.cantidadUsuarios()) = 0}
+
+        \end{proc}
+
+    \item 
+        \begin{proc}{actualizarSaldo}{\In id: \ent, \In monto: \ent, \Inout b: Berretacoin}
+        
+            \requiere{b = b_0}
+            \requiere{esUsuarioValido(id)}
+            \asegura{b.saldo(id) = b_0.saldo(id) + monto}
+    
+        \end{proc}
+
+\end{enumerate}
+
+\subsection{Justificativo de los procesos: }
+
+\begin{enumerate}
+    \item En este proseco, al agregar un usuario se le otorga como identificador un natural que es el siguiente al usuario que se agrego justo antes a él, esto nos permite no tener huecos y futuros problemas a la hora de implementar con las id´s.
+
+    \item Este proceso nos interesará más adelante para actualizar el saldo de los compradores y vendedores que participaron en transacciones validadas en un bloque que será agregado a la blockchain.
+\end{enumerate}
+
+\subsection{Predicados: }
+
+\begin{enumerate}
+    \item \pred{esUsuarioValido}{id: \ent, b = Berretacoin}{id \leq b_0.cantidadUsuarios()}
+    \item \pred{usuariosDistintos}{\In id_1: \ent, \In id_2: \ent}{ id_1 \neq id_2}
+\end{enumerate}
+
+
+\section{Transacciones}
+\label{4}
+\subsection{Funciones auxiliares: }
+
+\begin{enumerate}
+    \item \aux{Id.transaccion}{transaccion: Transaccion}{\ent}{transaccion[0]}
+    \item \aux{Comprador}{transaccion: Transaccion}{\ent}{transaccion[1]}
+    \item \aux{Vendedor}{transaccion: Transaccion}{\ent}{transaccion[2]}
+    \item \aux{Monto}{transaccion: Transaccion}{\ent}{transaccion[3]}
+\end{enumerate}
+
+\subsection{Comentario sobre las funciones auxiliares: }
+
+La idea acá es crear funciones auxiliares para el tipo Transacción, y así acceder a los valores dada una entrada de éste tipo y evitar una utilización constante de subíndices que recargue la escritura. Es decir, si quiero acceder al monto de una transacción, en lugar de escribir $b_0.(id.bloque,id.transaccion)[3]$ lo cual es bastante abstracto y difícil de leer, utilizamos estas funciones auxiliares a modo de reemplazos sintácticos para ayudar a que la especificación sea más comprensible.
+
+Otra cosa llamativa de estas funciones auxiliares, es que cada una podría ser un observador, sin embargo evitamos hacerlo así para no tener una sobrecarga de observadores e intentar usar no más de los necesarios.
+
+\subsection{Predicados}
+\begin{enumerate}
+    \item \pred{esDeCreacion}{\In id.bloque: \ent, \In id.transaccion: \ent, b = Berretacoin}{(id.bloque \leq 3000) \yLuego Comprador(b_0.transaccion(id.bloque, id.transaccion))  = 0} 
+
+    \item \pred {esTransaccionValida}{\In transaccion: Transaccion, \In b: Berretacoin}{\True \iff  (Monto(transaccion) > 0) \yLuego (id.comprador,id.vendedor \leq b_0.cantidadUsuarios()) \yLuego (saldo(id.comprador) \geq Monto(transaccion))} 
+\end{enumerate}
+
+\subsection{Comentario sobre los predicados: }
+
+Esta parte nos sirve, al igual que la anterior, para modularizar los predicados y procesos sobre bloques (sección inmediatamente contigua a ésta), y así facilitar la comprensión de la especificación, pues siendo que debe ser correctamente interpretada no consideramos óptimo que se generen dificultades en su lectura.
+
+\section{Bloques}
+
+\subsection{Predicados}
+
+\begin{enumerate}
+
+        \item \pred{transaccionesCrecientes}{\In id.bloque: \ent, b = Berretacoin}{\paraTodo{i}{\ent}{\paraTodo{j}{{\ent}}{(0 \leq i < j <\longitud{b_0.bloque(id.bloque)} \implicaLuego \\ Id.transaccion((b_0.transaccion(id.bloque, i))) <  Id.trasaccion(b_0.transaccion(id.bloque, j))  }}}
+
+        \item \pred{sonTransaccionesValidas}{\In id.bloque:  \ent, b = Berretacoin}{\paraTodo{i}{\ent}{0 \leq i \leq \longitud{b_0.bloque(id.bloque)} - 1 \implicaLuego esTransaccionValida(b_0.bloque(id.bloque)[i])}}
+
+       \item \pred{esBloqueValido}{\In id.bloque: \ent, b = Berretacoin }{(\longitud{Bloque} < 50) \yLuego noHayRepetidos(id.bloque) \yLuego transaccionesCrecientes(id_bloque, b_0) \yLuego \\ sonTransaccionesValidas(id.bloque, b_0)}
+
+        \item \pred{esBloqueCreacion}{\In id.bloque: \ent, b = Berretacoin}{esBloqueValido(id.bloque,b) \yLuego (id.bloque < 3000) \implicaLuego (esDeCreacion(b_0.bloque(id.bloque)[0])) }
+        
+\end{enumerate}
+
+\subsection{Comentarios sobre los predicados: }
+
+\begin{enumerate}
+   \item Con este predicado, buscamos ver que el orden de los identificadores de las transacciones dentro de un bloque, es estrictamente creciente.
+    
+   \item  Aquí generalizamos para bloques lo hecho en el predicado de la sección anterior para transacciones. La modularización del predicado $esTransaccionValida$ nos permite mayor legibilidad, que es lo que se buscaba.
+    
+    \item Nuevamente, y en base a lo pedido, especificamos lo que entendemos por bloqueValido.
+    
+    \item Aquí, por lo puesto en el enunciado, buscamos diferenciar un tipo especial de bloque que es de nuestro interés, por ser el tipo de bloque en el cual se genera una emisión de nuestra criptomoneda.
+\end{enumerate}
+
+\section{Procesos y predicados pedidos en el enunciado}
+
+\subsection{agregarBloque}
+
+\begin{proc}{agregarBloque}{\Inout b: Berretacoin, \In bloque: Bloque}{}
+    \requiere{b = b_0}
+    \requiere{bloque.id = b_0.cantidadBloques() + 1}
+    \requiere{esBloqueValido(bloque, b) \vee esBloqueCreacion(bloque, b)}
+    
+    \asegura{b = b_0 + bloque}
+    \asegura{\paraTodo[unalinea]{i}{\ent}{0 \leq i < \longitud{bloque} \implicaLuego actualizarSaldo(Vendedor(bloque[i]),Monto(bloque[i], b)}
+    }
+    \asegura{esBloqueCreacion(bloque) \implicaLuego \\ \paraTodo[unalinea]{i}{\ent}{1 \leq i < \longitud{bloque} \implicaLuego actualizarSaldo(Comprador(bloque[i]), -Monto(bloque[i], b))}}
+    
+     \asegura{\neg esBloqueCreacion(bloque) \implicaLuego \\ \paraTodo[unalinea]{i}{\ent}{0 \leq i < \longitud{bloque} \implicaLuego actualizarSaldo(Comprador(bloque[i]), -Monto(bloque[i], b))}}
+   
+\end{proc}
+\subsection{Sobre agregarBloque: }
+Lo pensado aquí, es que cada bloque[i] es una transacción. Usamos  entonces los métodos que se definieron en \ref{4} y actualizamos los montos una vez el bloque es validado por la blockchain como correcto.\\
+
+
+Para el vendedor no es de interés si la transacción es de creación, pues en una transacción de creación (donde el vendedor "mina" una unidad de Berretacoin), se genera un aumento del monto de éste último.\\
+
+Si tenemos un bloque de creación, por como construimos $esBloqueValido$, podemos omitir el primer subíndice (el correspondiente al valor $0$) y actualizar los montos de los compradores asegurandonos que no actualizaremos el del usuario $0$, es decir el emisor de moneda.\\
+
+Por último, unificamos las condiciones de valides del bloque y que sea de creación, pues por como fue definido el segundo, se entiende que es un sub-tipo de bloque válido.
+
+
+\subsection{maximosTenedores}
+
+\begin{proc}{maximosTenedores}{\In b: Berretacoin}{seq$\langle$\ent$\rangle$}
+    \requiere{b = b_0}
+    \asegura{(cantidadUsuarios() = 0 \yLuego res = [])  \oLuego \\ 
+    \existe[unalinea]{i}{\nat}{(esUsuarioValido(i) \yLuego i \in res)  \implicaLuego 
+    \paraTodo[unalinea]{j}{\nat}{esUsuarioValido(j) \implicaLuego b_0.saldo(j) \leq b_0.saldo(i)}}
+    
+\end{proc}
+
+\subsection{montoMedio}
+\begin{proc}{montoMedio}{\In cadena: Berretacoin}{\ent}
+    \requiere{True}
+    \asegura {
+        res = \dfrac{totalTransacciones(cadena)}{cantidadTransacciones(cadena)}}
+\end{proc}
+
+\subsection*{auxiliares}
+\aux{totalTransacciones}{cadena: Berretacoin}{\ent}{\\
+    \sum_{i=0}^{|cadena.blockchain| - 1} \sum_{j=0}^{|cadena.blockchain[i].transacciones| - 1} 
+    \ \ (getMonto(cadena.blockchain[i].transacciones[j]))
+}
+
+\aux{cantidadTransacciones}{cadena: Berretacoin}{\ent}{\\
+\sum_{i=0}^{|cadena.blockchain| - 1} \sum_{j=0}^{|cadena.blockchain[i].transacciones| - 1} 
+\ \ (1)}
+
+\subsection{cotizacionAPesos}
+\begin{proc}{cotizacionAPesos}{\In cotizaciones: seq$\langle$\ent$\rangle$, \In cadena: Berretacoin}{seq$\langle$\ent$\rangle$}
+    \requiere{True}
+    \asegura{\paraTodo[unalinea]{i}{\ent}{(0 \leq i < |cotizaciones|) \implicaLuego res[i] = cotizaciones[i] * totalTransaccion(cadena.blockchain[i])}}
+\end{proc}
+
+\subsection*{auxiliares}
+\aux{totalTransaccion}{bloq: Bloque}{\ent}{
+    \sum_{i=0}^{|bloq.transacciones| - 1} \ \ (getMonto(bloq.transacciones[i]))
+}
+\section{Predicados Generales}
+
+
+\pred{noHayRepetidos}{\In s: \TLista{T}}{\paraTodo[unalinea]{i}{\ent}{\paraTodo[unalinea]{j}{\ent}{i \neq j \implicaLuego s[i] \neq s[j]}}}
+
+\newpage
+
+\section{Otras ideas}
+
+Hacer todo con 4 observadores:
+
+blockchain = secuendia de Bloques\\
+
+bloque = secuencia de transacciones. donde cada transaccion es un struc \< id_transaccion, id_comprador, id_vendedor, monto \> \\
+
+monedasEmitidas = me da un Z con la cantidad emitida\\
+
+obs usuarios = secuencia de usuario donde usuario es un struc<id, saldo>
+
+Acá debería redefinir las funciones pero es bastante similar. Preguntar si se puede usar esto, ya que haria todo más sencillo.
+
+
+
+
+\section{Preguntas:}
+
+\begin{itemize}
+    \item ¿Debo agregar un proceso que sea nuevaTransacción?
+    \item ¿Debo especificar de que tipo son los usuarios? ¿Crear, por ejemplo un diccionario, una lista o un struct al cual preguntarle el saldo? ¿No es sobre-especificar, siendo que puedo armar el observador saldo sin necesitar todo eso?
+    \item ¿El bloque es dado de alguna forma? ¿Viene con id?
+    \item ¿puedo usar lo que está en otras ideas?
+\end{itemize}
+
+}
+
+\part{TAD completa: }
+
+\end{document}
